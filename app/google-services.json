@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "836164020045",
+    "project_id": "resalesoblikatorisk",
+    "storage_bucket": "resalesoblikatorisk.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:836164020045:android:4293553160142488b37904",
+        "android_client_info": {
+          "package_name": "com.example.resales"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9SlnLsR3da2VumXu6Ci9l0MpqXEJTqXw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
