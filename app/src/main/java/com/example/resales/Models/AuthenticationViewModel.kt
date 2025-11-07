@@ -1,4 +1,4 @@
-package com.example.resales.auth
+package com.example.resales.Models
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

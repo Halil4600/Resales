@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package com.example.resales.Screens
 
 import androidx.compose.foundation.layout.*
@@ -14,6 +16,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.resales.Models.SalesItem
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.ime
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+
+
+// ↓ NY import til baggrundsfarven i swipe-baggrunden
+import androidx.compose.foundation.background
+
+// SwipeToDismiss (Material 2)
+//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.SwipeToDismiss
+//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.DismissDirection
+//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.rememberDismissState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,24 +93,63 @@ fun ProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(myItems, key = { it.id }) { item ->
-                        ElevatedCard(Modifier.fillMaxWidth()) {
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text(item.description, style = MaterialTheme.typography.titleMedium)
-                                    Text("${item.price} kr", style = MaterialTheme.typography.bodyMedium)
-                                    Text(unixToDate(item.time), style = MaterialTheme.typography.bodySmall)
+
+                        // --- NYT: Swipe-to-delete state ---
+                        val dismissState = rememberDismissState(
+                            confirmStateChange = { value ->
+                                if (value == DismissValue.DismissedToStart) {
+                                    onDeleteItem(item.id)
                                 }
-                                IconButton(onClick = { onDeleteItem(item.id) }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Slet")
+                                true
+                            }
+                        )
+
+                        // --- NYT: SwipeToDismiss wrapper ---
+                        SwipeToDismiss(
+                            state = dismissState,
+                            directions = setOf(DismissDirection.EndToStart),
+                            background = {
+                                val bg = if (dismissState.dismissDirection == DismissDirection.EndToStart)
+                                    MaterialTheme.colorScheme.errorContainer
+                                else
+                                    MaterialTheme.colorScheme.surface
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(bg)
+                                        .padding(horizontal = 20.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Delete,
+                                        contentDescription = "Slet",
+                                        tint = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                            },
+                            dismissContent = {
+                                // --- Dit eksisterende kort uændret ---
+                                ElevatedCard(Modifier.fillMaxWidth()) {
+                                    Row(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column {
+                                            Text(item.description, style = MaterialTheme.typography.titleMedium)
+                                            Text("${item.price} kr", style = MaterialTheme.typography.bodyMedium)
+                                            Text(unixToDate(item.time), style = MaterialTheme.typography.bodySmall)
+                                        }
+                                        IconButton(onClick = { onDeleteItem(item.id) }) {
+                                            Icon(Icons.Filled.Delete, contentDescription = "Slet")
+                                        }
+                                    }
                                 }
                             }
-                        }
+                        )
                     }
                 }
             }
@@ -115,22 +180,68 @@ private fun AddItemSheet(
     var phone by remember { mutableStateOf("") }
     var pic by remember { mutableStateOf("") }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    // Åbn sheet helt (ingen half-expanded)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Scroll-state så indholdet kan rulles når keyboard vises
+    val scroll = rememberScrollState()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(scroll)       // indhold kan scrolles
+                .imePadding()                 // løft indhold over tastatur
+                .navigationBarsPadding()      // fri af nav-bar
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Text("Nyt item", style = MaterialTheme.typography.titleLarge)
 
-            OutlinedTextField(desc, { desc = it }, label = { Text("Description") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(
-                priceText, { priceText = it.filter(Char::isDigit) },
-                label = { Text("Price") },
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                value = desc,
+                onValueChange = { desc = it },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
-            OutlinedTextField(phone, { phone = it }, label = { Text("Phone") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(pic, { pic = it }, label = { Text("Picture URL (optional)") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = priceText,
+                onValueChange = { priceText = it.filter(Char::isDigit) },
+                label = { Text("Price") },
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = phone,
+                onValueChange = { phone = it },
+                label = { Text("Phone") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = pic,
+                onValueChange = { pic = it },
+                label = { Text("Picture URL (optional)") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text("Annullér") }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+            ) {
+                OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                    Text("Annullér")
+                }
                 Button(
                     onClick = {
                         val nowSec = (System.currentTimeMillis() / 1000L).toInt()
@@ -149,7 +260,9 @@ private fun AddItemSheet(
                     modifier = Modifier.weight(1f)
                 ) { Text("Gem") }
             }
-            Spacer(Modifier.height(12.dp))
+
+            // Ekstra bundplads svarende til tastaturets højde (hvis åbent)
+            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.ime))
         }
     }
 }

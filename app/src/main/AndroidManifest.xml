@@ -15,8 +15,8 @@
         android:theme="@style/Theme.Resales">
         <activity
             android:name=".MainActivity"
+            android:windowSoftInputMode="adjustResize|stateUnchanged"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.Resales">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

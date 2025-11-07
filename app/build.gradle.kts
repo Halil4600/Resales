@@ -69,6 +69,8 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-moshi:3.0.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.3")
     implementation("androidx.compose.material:material-icons-extended")
-
+    implementation(platform("androidx.compose:compose-bom:2024.10.01")) // eller din nuværende BOM
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material")
 
 }
