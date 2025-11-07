@@ -18,10 +18,6 @@ class SalesItemViewModel : ViewModel() {
         repository.getSalesItems()
     }
 
-    fun remove(item: SalesItem) {
-        // repository.delete(item.id)
-    }
-
     fun filterByDescription(text: String) = repository.filterByDescription(text)
 
     fun filterByMaxPrice(max: Int?) {
@@ -33,6 +29,5 @@ class SalesItemViewModel : ViewModel() {
     fun add(item: SalesItem) = repository.add(item)
 
     fun removeById(id: Int) = repository.delete(id)
-
 
 }
