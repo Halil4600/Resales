@@ -14,15 +14,17 @@ import com.example.resales.Models.AuthenticationViewModel
 import com.google.firebase.auth.FirebaseUser
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationScreen(
     vm: AuthenticationViewModel,
-    onDone: () -> Unit, // popBack til Home ved succes
+    onDone: () -> Unit,
+    onBack: () -> Unit
 ) {
-    // Hvis logget ind, navigér straks tilbage til Home
     val user: FirebaseUser? = vm.user
     LaunchedEffect(user) {
         if (user != null) onDone()
@@ -34,7 +36,19 @@ fun AuthenticationScreen(
     var isLogin by remember { mutableStateOf(true) } // toggle mellem login/registrering
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(if (isLogin) "Login" else "Register") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text(if (isLogin) "Login" else "Register") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Tilbage"
+                        )
+                    }
+                }
+            )
+        }
     ) { inner ->
         Column(
             Modifier.padding(inner).padding(16.dp),

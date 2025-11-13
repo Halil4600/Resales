@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.resales.Models.SalesItem
 
@@ -29,16 +30,12 @@ fun SalesItemList(
     onItemDeleted: (SalesItem) -> Unit = {},
     onAdd: () -> Unit = {},
 
-    // sortering
     sortByDate: (Boolean) -> Unit,
     sortByPrice: (Boolean) -> Unit,
-
-    // filtrering (separate)
     onFilterDescription: (String) -> Unit,
     onFilterMaxPrice: (Int?) -> Unit,
     onResetFilters: () -> Unit,
 
-    // AUTH actions til AppBar
     isLoggedIn: Boolean,
     onLoginClick: () -> Unit,
     onProfileClick: () -> Unit,
@@ -75,9 +72,10 @@ fun SalesItemList(
                 )
             }
 
-            // ---------- Filtre ----------
             var q by rememberSaveable { mutableStateOf("") }
             var maxPriceText by rememberSaveable { mutableStateOf("") }
+            var dateAsc by rememberSaveable { mutableStateOf(true) }
+            var priceAsc by rememberSaveable { mutableStateOf(true) }
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -88,13 +86,17 @@ fun SalesItemList(
                     value = q,
                     onValueChange = { q = it },
                     label = { Text("Filter by description") },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("filter_desc") // TESTTAG
                 )
                 OutlinedTextField(
                     value = maxPriceText,
                     onValueChange = { maxPriceText = it.filter(Char::isDigit) },
                     label = { Text("Max price") },
-                    modifier = Modifier.width(140.dp)
+                    modifier = Modifier
+                        .width(140.dp)
+                        .testTag("filter_max_price") // TESTTAG
                 )
             }
 
@@ -104,49 +106,56 @@ fun SalesItemList(
                     .fillMaxWidth()
                     .padding(top = 8.dp, bottom = 4.dp)
             ) {
-                Button(onClick = {
-                    // VIGTIGT: start fra fuld liste -> filtrer videre
-                    onResetFilters()
-                    if (q.isNotBlank()) onFilterDescription(q)
-                    onFilterMaxPrice(maxPriceText.toIntOrNull())
-                }) {
+                OutlinedButton(
+                    onClick = {
+                        sortByDate(dateAsc)
+                        dateAsc = !dateAsc
+                    },
+                    modifier = Modifier.testTag("btn_sort_date")
+                ) {
+                    Text(if (dateAsc) "Date ↓" else "Date ↑")
+                }
+
+                TextButton(
+                    onClick = {
+                        sortByPrice(priceAsc)
+                        priceAsc = !priceAsc
+                    },
+                    modifier = Modifier.testTag("btn_sort_price")
+                ) {
+                    Text(if (priceAsc) "Price ↓" else "Price ↑")
+                }
+
+                Button(
+                    onClick = {
+                        onResetFilters()
+                        if (q.isNotBlank()) onFilterDescription(q)
+                        onFilterMaxPrice(maxPriceText.toIntOrNull())
+                    },
+                    modifier = Modifier.testTag("btn_filter")
+                ) {
                     Text("Filter")
                 }
-                TextButton(onClick = {
-                    q = ""
-                    maxPriceText = ""
-                    onResetFilters()
-                }) { Text("Reset") }
-            }
-
-            // ---------- Sortering ----------
-            var dateAsc by rememberSaveable { mutableStateOf(true) }
-            var priceAsc by rememberSaveable { mutableStateOf(true) }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedButton(onClick = {
-                    sortByDate(dateAsc)     // true = ældste→nyeste
-                    dateAsc = !dateAsc
-                }) { Text(if (dateAsc) "Date ↓" else "Date ↑") }
-
-                TextButton(onClick = {
-                    sortByPrice(priceAsc)   // true = laveste→højeste
-                    priceAsc = !priceAsc
-                }) { Text(if (priceAsc) "Price ↓" else "Price ↑") }
+                TextButton(
+                    onClick = {
+                        q = ""
+                        maxPriceText = ""
+                        onResetFilters()
+                    },
+                    modifier = Modifier.testTag("btn_reset")
+                ) { Text("Reset") }
             }
 
             Spacer(Modifier.height(8.dp))
 
-            // ---------- Liste med pull-to-refresh ----------
             PullToRefreshBox(
                 isRefreshing = itemsLoading,
                 onRefresh = onItemsReload
             ) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag("items_list"),
                     contentPadding = PaddingValues(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -179,34 +188,34 @@ private fun SalesItemCard(
                 expanded = !expanded
                 onSelected()
             }
+            .testTag("item_card")
     ) {
         Column(Modifier.padding(12.dp)) {
-            // Header
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(item.description, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    item.description,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.testTag("item_title_${item.id}")
+                )
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("${item.price} kr")
+                    Text("${item.price} kr", modifier = Modifier.testTag("item_price_${item.id}"))
                     Text(unixToDate(item.time), style = MaterialTheme.typography.bodySmall)
                 }
             }
 
-            // Detaljer
             AnimatedVisibility(visible = expanded) {
                 Column(Modifier.padding(top = 8.dp)) {
                     Text("Sælger: ${item.sellerEmail}", style = MaterialTheme.typography.bodySmall)
                     Text("Telefon: ${item.sellerPhone}", style = MaterialTheme.typography.bodySmall)
-                    // TODO: pictureUrl -> vis med Coil, hvis du vil
                 }
             }
         }
     }
 }
-
-// UNIX sekunder -> yyyy-MM-dd
 private fun unixToDate(seconds: Int): String =
     java.time.Instant.ofEpochSecond(seconds.toLong())
         .atZone(java.time.ZoneId.systemDefault())

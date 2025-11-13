@@ -48,7 +48,7 @@ fun MainScreen(
         navController = navController,
         startDestination = NavRoutes.SalesItemList.route
     ) {
-        // HOME
+
         composable(NavRoutes.SalesItemList.route) {
             SalesItemList(
                 modifier = modifier,
@@ -57,19 +57,16 @@ fun MainScreen(
                 onItemsReload = { salesVm.getSalesItems() },
                 itemsLoading = isLoading,
                 onItemSelected = { _: SalesItem -> },
-                onItemDeleted = { /* salesVm.remove(it) når DELETE er klar */ },
-                onAdd = { /* senere */ },
+                onAdd = { if (isLoggedIn) navController.navigate(NavRoutes.Profile.route)
+                        else navController.navigate(NavRoutes.Login.route) },
 
-                // sortering
                 sortByDate = { asc -> salesVm.sortByDate(ascending = asc) },
                 sortByPrice = { asc -> salesVm.sortByPrice(ascending = asc) },
 
-                // filtrering
                 onFilterDescription = { txt -> salesVm.filterByDescription(txt) },
                 onFilterMaxPrice = { max -> salesVm.filterByMaxPrice(max) },
                 onResetFilters = { salesVm.resetFilters() },
 
-                // auth actions i AppBar
                 isLoggedIn = isLoggedIn,
                 onLoginClick = { navController.navigate(NavRoutes.Login.route) },
                 onProfileClick = { navController.navigate(NavRoutes.Profile.route) },
@@ -77,15 +74,14 @@ fun MainScreen(
             )
         }
 
-        // AUTH
         composable(NavRoutes.Login.route) {
             AuthenticationScreen(
                 vm = authVm,
-                onDone = { navController.popBackStack() } // tilbage til Home
+                onDone = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
             )
         }
 
-        // PROFILE (Mine items + Add/Delete)
         composable(NavRoutes.Profile.route) {
             val email = authVm.user?.email ?: ""
             ProfileScreen(
@@ -93,8 +89,8 @@ fun MainScreen(
                 allItems = salesVm.items.value,
                 isLoading = salesVm.isLoading.value,
                 errorMessage = salesVm.errorMessage.value,
-                onAddItem = { item -> salesVm.add(item) },               // POST -> repo.getSalesItems()
-                onDeleteItem = { id -> salesVm.removeById(id) },         // DELETE -> repo.getSalesItems()
+                onAddItem = { item -> salesVm.add(item) },
+                onDeleteItem = { id -> salesVm.removeById(id) },
                 onBack = { navController.popBackStack() }
             )
         }

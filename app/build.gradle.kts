@@ -72,5 +72,10 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.10.01")) // eller din nuværende BOM
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.10.01"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
 }

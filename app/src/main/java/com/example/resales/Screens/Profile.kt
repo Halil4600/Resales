@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,6 +36,7 @@ import androidx.compose.material.DismissDirection
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.rememberDismissState
 
@@ -63,7 +63,7 @@ fun ProfileScreen(
                 title = { Text("Min profil") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Tilbage")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Tilbage")
                     }
                 }
             )
@@ -94,7 +94,6 @@ fun ProfileScreen(
                 ) {
                     items(myItems, key = { it.id }) { item ->
 
-                        // --- NYT: Swipe-to-delete state ---
                         val dismissState = rememberDismissState(
                             confirmStateChange = { value ->
                                 if (value == DismissValue.DismissedToStart) {
@@ -104,7 +103,6 @@ fun ProfileScreen(
                             }
                         )
 
-                        // --- NYT: SwipeToDismiss wrapper ---
                         SwipeToDismiss(
                             state = dismissState,
                             directions = setOf(DismissDirection.EndToStart),
@@ -129,7 +127,6 @@ fun ProfileScreen(
                                 }
                             },
                             dismissContent = {
-                                // --- Dit eksisterende kort uændret ---
                                 ElevatedCard(Modifier.fillMaxWidth()) {
                                     Row(
                                         Modifier
@@ -180,10 +177,8 @@ private fun AddItemSheet(
     var phone by remember { mutableStateOf("") }
     var pic by remember { mutableStateOf("") }
 
-    // Åbn sheet helt (ingen half-expanded)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Scroll-state så indholdet kan rulles når keyboard vises
     val scroll = rememberScrollState()
 
     ModalBottomSheet(
@@ -193,9 +188,9 @@ private fun AddItemSheet(
         Column(
             Modifier
                 .fillMaxWidth()
-                .verticalScroll(scroll)       // indhold kan scrolles
-                .imePadding()                 // løft indhold over tastatur
-                .navigationBarsPadding()      // fri af nav-bar
+                .verticalScroll(scroll)
+                .imePadding()
+                .navigationBarsPadding()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -261,7 +256,6 @@ private fun AddItemSheet(
                 ) { Text("Gem") }
             }
 
-            // Ekstra bundplads svarende til tastaturets højde (hvis åbent)
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.ime))
         }
     }

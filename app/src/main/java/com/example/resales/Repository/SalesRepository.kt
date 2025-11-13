@@ -29,7 +29,6 @@ class SalesRepository {
         getSalesItems()
     }
 
-    // ---------- HENT ALLE ----------
     fun getSalesItems() {
         isLoading.value = true
         errorMessage.value = ""
@@ -63,7 +62,6 @@ class SalesRepository {
         })
     }
 
-    // ---------- TILFØJ ITEM ----------
     fun add(item: SalesItem) {
         service.create(item).enqueue(object : Callback<SalesItem> {
             override fun onResponse(call: Call<SalesItem>, response: Response<SalesItem>) {
@@ -86,7 +84,6 @@ class SalesRepository {
         })
     }
 
-    // ---------- SLET ITEM ----------
     fun delete(id: Int) {
         Log.d("SALES_REPO", "Delete: $id")
         service.delete(id).enqueue(object : Callback<SalesItem> {
@@ -110,7 +107,6 @@ class SalesRepository {
         })
     }
 
-    // ---------- SORTERING ----------
     fun sortByDate(ascending: Boolean) {
         Log.d("SALES_REPO", "Sort by date")
         items.value = if (ascending) {
@@ -129,11 +125,6 @@ class SalesRepository {
         }
     }
 
-    // ---------- FILTER ----------
-    fun resetFilters() {
-        items.value = allItems
-    }
-
     fun filterByDescription(fragment: String) {
         val q = fragment.trim()
         if (q.isEmpty()) return
@@ -145,5 +136,9 @@ class SalesRepository {
     fun filterByMaxPrice(maxPrice: Int?) {
         if (maxPrice == null) return
         items.value = items.value.filter { it.price <= maxPrice }
+    }
+
+    fun resetFilters() {
+        items.value = allItems
     }
 }
